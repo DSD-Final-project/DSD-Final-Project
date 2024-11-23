@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #map-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            border:gray 15px solid;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+        }
+
+        #map {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #map img {
+            position: absolute;
+            cursor: grab;
+        }
+
+        #controls {
+            position: fixed;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        #controls button {
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+        }
+        .grid{
+            display:grid;
+            grid-template-columns: 1fr 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid">
+    <div id="map-container">
+        <div id="map">
+            <img src="map-xl.gif" alt="Map">
+        </div>
+    </div>
+    <div id="controls">
+        <button id='zoomin' onclick="zoomMap(1.2)">+</button>
+        <button id='zoomout' onclick="zoomMap(0.8)">-</button>
+        <button id='left' onclick="scrollMap(-0.5, 0)">←</button>
+        <button id='right' onclick="scrollMap(0.5, 0)">→</button>
+        <button id='up' onclick="scrollMap(0, -0.5)">↑</button>
+        <button id='down' onclick="scrollMap(0, 0.5)">↓</button>
+    </div>
+    </div>
+
+    <script>
+        let map = document.getElementById('map');
+        let img = map.querySelector('img');
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+
+        function centerMap() {
+            const left = (map.clientWidth - img.width) / 2;
+            const top = (map.clientHeight - img.height) / 2;
+            img.style.left = left + 'px';
+            img.style.top = top + 'px';
+        }
+
+        function handleMouseDown(e) {
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseInt(img.style.left, 10);
+            startTop = parseInt(img.style.top, 10);
+            img.style.cursor = 'grabbing';
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            img.style.left = startLeft + dx + 'px';
+            img.style.top = startTop + dy + 'px';
+        }
+
+        function handleMouseUp(e) {
+            console.log(e.clientX, e.clientY)
+            isDragging = false;
+            img.style.cursor = 'grab';
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        function zoomMap(factor) {
+             const rect = img.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const newWidth = img.width * factor;
+            const newHeight = img.height * factor;
+
+            const dx = (newWidth - img.width) / 2;
+            const dy = (newHeight - img.height) / 2;
+
+
+            img.style.width = newWidth + 'px';
+            img.style.height = newHeight + 'px';
+
+            img.style.left = (parseInt(img.style.left, 10) - dx) + 'px';
+            img.style.top = (parseInt(img.style.top, 10) - dy) + 'px';
+        }
+
+        function scrollMap(dx, dy) {
+            const scrollLeft = dx * map.clientWidth;
+            const scrollTop = dy * map.clientHeight;
+            img.style.left = parseInt(img.style.left, 10) - scrollLeft + 'px';
+            img.style.top = parseInt(img.style.top, 10) - scrollTop + 'px';
+        }
+
+        img.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('resize', centerMap);
+        window.onload = centerMap;
+    </script>
+</body>
+
+</html>
